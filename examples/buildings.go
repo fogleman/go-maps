@@ -16,10 +16,26 @@ const (
 	m      = 4
 	width  = m * 1024
 	height = m * 1024
-	scale  = m * 220000
-	lat    = 38.9047
-	lng    = -77.0164
-	path   = "files/district-of-columbia-latest.osm.pbf"
+
+	// path   = "files/district-of-columbia-latest.osm.pbf"
+	// lat    = 38.9047
+	// lng    = -77.0164
+	// scale  = m * 220000
+
+	// path  = "files/nyc.osm.pbf"
+	// lat   = 40.7903
+	// lng   = -73.9597
+	// scale = m * 220000
+
+	// path  = "files/chicago.osm.pbf"
+	// lat   = 41.87
+	// lng   = -87.665
+	// scale = m * 400000
+
+	path  = "files/sfo.osm.pbf"
+	lat   = 37.7507
+	lng   = -122.4367
+	scale = m * 300000
 )
 
 func HexColor(x string) colorful.Color {
@@ -27,7 +43,7 @@ func HexColor(x string) colorful.Color {
 	return color
 }
 
-func RenderBuildings(dc *maps.Canvas, colors []colorful.Color, path string) {
+func DrawBuildings(dc *maps.Canvas, colors []colorful.Color, path string) {
 	pbf, err := maps.LoadPBF(path)
 	if err != nil {
 		log.Fatal(err)
@@ -76,7 +92,7 @@ func main() {
 	dc.SetSourceRGB(bg.R, bg.G, bg.B)
 	dc.Paint()
 
-	RenderBuildings(dc, colors, path)
+	DrawBuildings(dc, colors, path)
 
 	dc.WriteToPNG("output.png")
 }
