@@ -1,6 +1,7 @@
 package maps
 
 import (
+	"github.com/jonas-p/go-shp"
 	"github.com/qedus/osmpbf"
 	"github.com/ungerik/go-cairo"
 )
@@ -14,6 +15,7 @@ type Canvas struct {
 }
 
 func NewCanvas(surface *cairo.Surface, lat, lng, scale, rotation float64) *Canvas {
+	rotation = Radians(rotation)
 	canvas := Canvas{*surface, lat, lng, scale, rotation}
 	w := float64(surface.GetWidth())
 	h := float64(surface.GetHeight())
@@ -41,6 +43,36 @@ func (canvas *Canvas) DrawMultiPolygon(pbf *PBF, relation *osmpbf.Relation) {
 		}
 		if way, ok := pbf.Ways[member.ID]; ok {
 			canvas.DrawWay(pbf, way)
+		}
+	}
+}
+
+func (canvas *Canvas) DrawShapes(shapes []Shape) {
+	for _, shape := range shapes {
+		canvas.DrawShape(shape)
+	}
+}
+
+func (canvas *Canvas) DrawShape(shape Shape) {
+	switch v := shape.Shape.(type) {
+	case *shp.PolyLine:
+		canvas.DrawPolyLine(v)
+	case *shp.Polygon:
+		line := shp.PolyLine(*v)
+		canvas.DrawPolyLine(&line)
+	}
+}
+
+func (canvas *Canvas) DrawPolyLine(line *shp.PolyLine) {
+	parts := append(line.Parts, line.NumPoints)
+	for part := 0; part < len(parts)-1; part++ {
+		canvas.NewSubPath()
+		a := parts[part]
+		b := parts[part+1]
+		for i := a; i < b; i++ {
+			pt := line.Points[i]
+			x, y := Mercator(pt.Y, pt.X, canvas.Scale)
+			canvas.LineTo(x, y)
 		}
 	}
 }
