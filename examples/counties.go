@@ -17,16 +17,13 @@ const (
 	scale  = m * 12000
 )
 
-func HexColor(x string) colorful.Color {
-	color, _ := colorful.Hex(x)
-	return color
-}
-
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	bg := HexColor("#222028")
-	land := HexColor("#FFFFFF")
+	bg, _ := colorful.Hex("#A7C9AE")
+	land, _ := colorful.Hex("#FFE7AD")
+	stroke, _ := colorful.Hex("#FFAB48")
+	text, _ := colorful.Hex("#CC6B32")
 
 	surface := cairo.NewSurface(cairo.FORMAT_ARGB32, width, height)
 	dc := maps.NewCanvas(surface, lat, lng, scale, 0)
@@ -37,22 +34,32 @@ func main() {
 	dc.SetSourceRGB(bg.R, bg.G, bg.B)
 	dc.Paint()
 
-	dc.SelectFontFace("Helvetica Neue", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+	dc.SelectFontFace("Helvetica Neue", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 	dc.SetFontSize(12)
 
 	shapes, _ := maps.LoadSHP("files/cb_2013_us_county_5m/cb_2013_us_county_5m.shp")
+
+	dc.SetSourceRGB(land.R, land.G, land.B)
 	for _, shape := range shapes {
-		tags := shape.Tags
-		if tags["STATEFP"] != "37" {
+		if shape.Tags["STATEFP"] != "37" {
 			continue
 		}
-		name := tags["NAME"]
 		dc.DrawShape(shape)
-		dc.SetSourceRGB(land.R, land.G, land.B)
+		dc.Fill()
+	}
+
+	for _, shape := range shapes {
+		if shape.Tags["STATEFP"] != "37" {
+			continue
+		}
+		name := shape.Tags["NAME"]
+		dc.SetSourceRGB(stroke.R, stroke.G, stroke.B)
+		dc.DrawShape(shape)
 		dc.Stroke()
 		pt := shape.Centroid()
 		x, y := maps.Mercator(pt.Y, pt.X, scale)
 		e := dc.TextExtents(name)
+		dc.SetSourceRGB(text.R, text.G, text.B)
 		dc.MoveTo(x-e.Width/2, y+e.Height/2)
 		dc.ShowText(name)
 	}
