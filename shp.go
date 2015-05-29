@@ -36,3 +36,35 @@ func LoadSHP(path string) ([]Shape, error) {
 	}
 	return result, nil
 }
+
+func (shape Shape) Centroid() Point {
+	points := shape.GetPoints()
+	return Centroid(points[len(points)-1])
+}
+
+func (shape Shape) GetPoints() [][]Point {
+	switch v := shape.Shape.(type) {
+	case *shp.PolyLine:
+		return getPoints(v)
+	case *shp.Polygon:
+		line := shp.PolyLine(*v)
+		return getPoints(&line)
+	}
+	return nil
+}
+
+func getPoints(line *shp.PolyLine) [][]Point {
+	var result [][]Point
+	parts := append(line.Parts, line.NumPoints)
+	for part := 0; part < len(parts)-1; part++ {
+		var points []Point
+		a := parts[part]
+		b := parts[part+1]
+		for i := a; i < b; i++ {
+			pt := line.Points[i]
+			points = append(points, Point{pt.X, pt.Y})
+		}
+		result = append(result, points)
+	}
+	return result
+}

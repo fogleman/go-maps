@@ -1,7 +1,6 @@
 package maps
 
 import (
-	"github.com/jonas-p/go-shp"
 	"github.com/qedus/osmpbf"
 	"github.com/ungerik/go-cairo"
 )
@@ -54,23 +53,10 @@ func (canvas *Canvas) DrawShapes(shapes []Shape) {
 }
 
 func (canvas *Canvas) DrawShape(shape Shape) {
-	switch v := shape.Shape.(type) {
-	case *shp.PolyLine:
-		canvas.DrawPolyLine(v)
-	case *shp.Polygon:
-		line := shp.PolyLine(*v)
-		canvas.DrawPolyLine(&line)
-	}
-}
-
-func (canvas *Canvas) DrawPolyLine(line *shp.PolyLine) {
-	parts := append(line.Parts, line.NumPoints)
-	for part := 0; part < len(parts)-1; part++ {
+	groups := shape.GetPoints()
+	for _, group := range groups {
 		canvas.NewSubPath()
-		a := parts[part]
-		b := parts[part+1]
-		for i := a; i < b; i++ {
-			pt := line.Points[i]
+		for _, pt := range group {
 			x, y := Mercator(pt.Y, pt.X, canvas.Scale)
 			canvas.LineTo(x, y)
 		}
